@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Package, PlusCircle, Loader2, RefreshCw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -7,20 +7,53 @@ import OrderCard from '@/components/OrderCard';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { getApiErrorMessage, ordersApi, Order, PaginatedOrders } from '@/lib/api';
 
+const STATUS_OPTIONS: Array<{ label: string; value: '' | Order['status'] }> = [
+  { label: 'All Statuses', value: '' },
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'In Transit', value: 'IN_TRANSIT' },
+  { label: 'Delivered', value: 'DELIVERED' },
+  { label: 'Canceled', value: 'CANCELED' },
+];
+
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
+
+  const [status, setStatus] = useState<'' | Order['status']>('');
+  const [senderName, setSenderName] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
   const ordersQuery = useQuery<PaginatedOrders>({
-    queryKey: ['orders', 1, 50],
+    queryKey: ['orders', page, limit, status, senderName, recipientName],
     enabled: !!user,
     queryFn: async () => {
-      const response = await ordersApi.getAll(1, 50);
+      const response = await ordersApi.getAll({
+        page,
+        limit,
+        status: status || undefined,
+        senderName: senderName.trim() || undefined,
+        recipientName: recipientName.trim() || undefined,
+      });
       return response.data.data;
     },
   });
 
   const orders: Order[] = ordersQuery.data?.data || [];
+  const meta = ordersQuery.data?.meta;
   const error = ordersQuery.error ? getApiErrorMessage(ordersQuery.error) || 'Failed to load orders' : '';
   const isLoading = ordersQuery.isLoading;
+
+  useEffect(() => {
+    setPage(1);
+  }, [status, senderName, recipientName, limit]);
+
+  useEffect(() => {
+    if (!meta) return;
+    if (page > meta.totalPages) {
+      setPage(meta.totalPages || 1);
+    }
+  }, [meta, page]);
 
   if (authLoading || !user) {
     return (
@@ -60,6 +93,58 @@ export default function OrdersPage() {
           </div>
         </div>
 
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as '' | Order['status'])}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {STATUS_OPTIONS.map((opt) => (
+                  <option key={opt.value || 'ALL'} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
+              <input
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="Search sender"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Name</label>
+              <input
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                placeholder="Search recipient"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Items per page</label>
+              <select
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
             {error}
@@ -88,6 +173,35 @@ export default function OrdersPage() {
             {orders.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
+          </div>
+        )}
+
+        {meta && meta.totalPages > 0 && (
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-sm text-gray-600">
+              {`Showing page ${meta.page} of ${meta.totalPages} (${meta.total} total)`}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={ordersQuery.isFetching || meta.page <= 1}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <div className="text-sm text-gray-700 min-w-[120px] text-center">
+                Page {meta.page} / {meta.totalPages}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={ordersQuery.isFetching || meta.page >= meta.totalPages}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

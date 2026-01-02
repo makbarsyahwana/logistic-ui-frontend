@@ -19,9 +19,13 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const navItems = [
-    { href: '/', label: 'Dashboard', icon: Home },
-    { href: '/orders', label: 'Orders', icon: Package },
-    { href: '/orders/new', label: 'New Order', icon: PlusCircle },
+    ...(user
+      ? [
+          { href: '/', label: 'Dashboard', icon: Home },
+          { href: '/orders', label: 'Orders', icon: Package },
+          { href: '/orders/new', label: 'New Order', icon: PlusCircle },
+        ]
+      : []),
     { href: '/track', label: 'Track', icon: Search },
   ];
 

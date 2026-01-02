@@ -118,6 +118,15 @@ export default function LoginPage() {
                 Sign up
               </Link>
             </p>
+
+            <div className="mt-4">
+              <Link
+                href="/track"
+                className="inline-flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              >
+                Track Order
+              </Link>
+            </div>
           </div>
         </div>
       </div>

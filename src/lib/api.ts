@@ -111,11 +111,27 @@ export interface PaginatedOrders {
   meta: PaginationMeta;
 }
 
+export interface OrdersQueryParams {
+  status?: Order['status'];
+  senderName?: string;
+  recipientName?: string;
+  page?: number;
+  limit?: number;
+}
+
 // Orders APIs
 export const ordersApi = {
   create: (data: CreateOrderDto) => api.post<ApiResponse<Order>>('/orders', data),
-  getAll: (page = 1, limit = 10) =>
-    api.get<ApiResponse<PaginatedOrders>>('/orders', { params: { page, limit } }),
+  getAll: (params: OrdersQueryParams = {}) =>
+    api.get<ApiResponse<PaginatedOrders>>('/orders', {
+      params: {
+        page: params.page ?? 1,
+        limit: params.limit ?? 10,
+        status: params.status,
+        senderName: params.senderName,
+        recipientName: params.recipientName,
+      },
+    }),
   getById: (id: string) => api.get<ApiResponse<Order>>(`/orders/${id}`),
   track: (trackingNumber: string) => api.get<ApiResponse<Order>>(`/orders/track/${trackingNumber}`),
   updateStatus: (id: string, status: Order['status']) =>
