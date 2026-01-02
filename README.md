@@ -1,6 +1,6 @@
 # LogiTrack - Logistics Management UI
 
-A modern React/Next.js frontend for the logistics service backend.
+A React/Next.js frontend for the logistics service backend.
 
 ## Features
 
@@ -46,37 +46,6 @@ The app will be available at http://localhost:3001
 |----------|-------------|---------|
 | `NEXT_PUBLIC_API_URL` | Backend API URL | `http://localhost:3000/api/v1` |
 
-## Project Structure
-
-```
-ui-frontend/
-├── src/
-│   ├── components/      # Reusable UI components
-│   │   ├── Layout.tsx   # Main layout with navigation
-│   │   ├── OrderCard.tsx # Order display with actions
-│   │   └── OrderForm.tsx # Create order form
-│   ├── contexts/        # React contexts
-│   │   └── AuthContext.tsx # Authentication state
-│   ├── lib/             # Utilities and API client
-│   │   ├── api.ts       # Axios API client
-│   │   └── utils.ts     # Helper functions
-│   ├── pages/           # Next.js pages
-│   │   ├── _app.tsx     # App wrapper
-│   │   ├── index.tsx    # Dashboard
-│   │   ├── login.tsx    # Login page
-│   │   ├── register.tsx # Registration page
-│   │   ├── track.tsx    # Order tracking page
-│   │   └── orders/      # Order pages
-│   │       ├── index.tsx  # Orders list
-│   │       ├── new.tsx    # Create order
-│   │       └── [id].tsx   # Order detail
-│   └── styles/
-│       └── globals.css  # Global styles
-├── package.json
-├── tailwind.config.js
-└── tsconfig.json
-```
-
 ## Pages
 
 | Route | Description |
@@ -88,7 +57,3 @@ ui-frontend/
 | `/orders/new` | Create new order |
 | `/orders/[id]` | Order details |
 | `/track` | Track order by tracking number |
-
-## Security Note
-
-This project uses Next.js 14.2.15 with the **Pages Router** (not App Router) to avoid the [React Server Components security vulnerability](https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components) disclosed in December 2025.
